@@ -30,7 +30,7 @@ contract SharedWallet is Ownable, ReentrancyGuard{
         approvedOwner[_beneficiary] += _amount;
     }
 
-     function deposit() external payable {
+    function deposit() external payable {
       emit Deposit(_msgSender(), msg.value);
     }
 
