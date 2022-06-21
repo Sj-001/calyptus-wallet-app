@@ -13,32 +13,15 @@ describe("WalletCreator", () => {
     var WalletCreator = await ethers.getContractFactory("WalletCreator");
     creator = await WalletCreator.deploy();
     await creator.deployed();
-    var SharedWalletContract = await ethers.getContractFactory("SharedWallet");
-    contract = await SharedWalletContract.deploy();
-    await contract.deployed();
   });
 
-  it("should allow anyone to create a wallet and emits an event", async () => {
-    // creator.on("WalletCreated", (beneficiary, wallet) => {
-    //   console.log("hsjdhsbcj", beneficiary, wallet);
-    // });
-    // await expect(creator.createWallet()).to.emit(creator, "WalletCreated");
-    // topics = creator.filters.WalletCreated(owner.address);
+  it("should allow anyone to create a wallet with ownership transferred to msg.sender and emits an event", async () => {
+    await expect(creator.createWallet()).to.emit(creator, "WalletCreated");
 
-    // var logs = ethers.utils.defaultAbiCoder.decode(
-    //   ["address", "address"],
-    //   topics.topics
-    // );
-    // console.log(logs);
+    var wallets = await creator.returnUserWallets(owner.address);
 
-    creator.createWallet().then(() => {
-      creator.on("WalletCreated", async (beneficiary, wallet, event) => {
-        console.log("hsjdhsbcj", beneficiary, wallet);
-      });
-    });
-    // await tx.wait();
-
-    expect(true).to.be.true;
+    contract = new ethers.Contract(wallets[0], SharedWallet.abi, owner);
+    expect(await contract.owner()).to.equal(owner.address);
   });
 
   describe("SharedWallet", () => {

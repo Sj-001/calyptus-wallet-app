@@ -15,4 +15,8 @@ contract WalletCreator {
     userWallets[msg.sender].push(address(newWallet));
     emit WalletCreated(msg.sender, address(newWallet));
   }
+
+  function returnUserWallets(address _beneficiary) external view returns(address[] memory wallets){
+    wallets = userWallets[_beneficiary];
+  }
 }
