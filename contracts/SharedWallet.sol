@@ -4,6 +4,7 @@ pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "hardhat/console.sol";
 
 
 contract SharedWallet is Ownable, ReentrancyGuard{
@@ -21,12 +22,19 @@ contract SharedWallet is Ownable, ReentrancyGuard{
     event Transfer(address _sender, address _recipient, uint _amount);
 
     function addOwner(address _beneficiary, uint _amount) external onlyOwner{
-        require(approvedOwner[_beneficiary] == 0, "Address already added as a beneficiary.");
+        require(approvedOwner[_beneficiary] == 0 && _beneficiary != owner(), "Address already added as a beneficiary.");
         approvedOwner[_beneficiary] = _amount; 
+    }
+
+    function removeOwner(address _beneficiary) external onlyOwner{
+        require(approvedOwner[_beneficiary] > 0, "Address not a beneficiary.");
+        require(_beneficiary != owner(), "Owner's address");
+        approvedOwner[_beneficiary] = 0;
     }
 
     function increaseUserSpendLimit(address _beneficiary, uint _amount) external onlyOwner {
         require(approvedOwner[_beneficiary] > 0, "Address not a beneficiary.");
+        require(_beneficiary!= owner(), "Owner's address");
         approvedOwner[_beneficiary] += _amount;
     }
 
@@ -36,19 +44,32 @@ contract SharedWallet is Ownable, ReentrancyGuard{
 
     function withdraw(uint _amount) external nonReentrant validOwner {
         require(address(this).balance >= _amount, "Insufficient funds.");
-        require(approvedOwner[_msgSender()] >= _amount, "User withdraw limit exceeded.");
+         
+        if(_msgSender() != owner()){
+            
+            require(approvedOwner[_msgSender()] >= _amount, "User withdraw limit exceeded.");
+            
+        }
+        
         (bool res,) = payable(_msgSender()).call{value: _amount}("");
+       
         require(res, "Error transferring funds. Try Again.");
-        approvedOwner[_msgSender()] -= _amount;
+        if(_msgSender() != owner()){
+            approvedOwner[_msgSender()] -= _amount;
+        }
         emit Withdraw(_msgSender(), _amount);
     }
 
     function transfer(address _to, uint _amount) external nonReentrant validOwner {
         require(address(this).balance >= _amount, "Insufficient funds.");
-        require(approvedOwner[_msgSender()] >= _amount, "User withdraw limit exceeded.");
+        if(_msgSender() != owner()){
+            require(approvedOwner[_msgSender()] >= _amount, "User withdraw limit exceeded.");
+        }
         (bool res,) = payable(_to).call{value: _amount}("");
         require(res, "Error transferring funds. Try Again.");
-        approvedOwner[_msgSender()] -= _amount;
+        if(_msgSender() != owner()){
+            approvedOwner[_msgSender()] -= _amount;
+        }
         emit Transfer(_msgSender(), _to, _amount);
     }
 
