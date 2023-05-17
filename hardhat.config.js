@@ -23,8 +23,13 @@ module.exports = {
   networks: {
     rinkeby: {
       url: process.env.RPC_URL,
-      accounts: { mnemonic: process.env.MNEMONIC },
+      accounts:[process.env.NEON_ACCOUNTS],
     },
+    neondevnet: {
+      chainId: 245022926,
+      url: process.env.RPC_URL,
+      accounts: [process.env.NEON_ACCOUNTS],
+    },   
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

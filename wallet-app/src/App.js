@@ -33,7 +33,7 @@ function App() {
       // Prompt user for account connections
 
       var contract = new ethers.Contract(
-        "0x33b9Feef1bd0c6262b43726832B3817DaE0f21A7",
+        "0x2e9e6E40f1a49008ABacdE5C3D311D1e169747E2",
         WalletCreator.abi,
         provider
       );
@@ -71,13 +71,13 @@ function App() {
     setAccount(signer);
     setAdddress(account);
     console.log("Account connected", account);
-    const chainId = 4; // Polygon Mainnet
+    const chainId = 245022926; //Neon Devnet
 
     if (window.ethereum.networkVersion !== chainId) {
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x4" }],
+          params: [{ chainId: "0xe9ac0ce" }],
         });
       } catch (err) {
         // This error code indicates that the chain has not been added to MetaMask
@@ -86,15 +86,15 @@ function App() {
             method: "wallet_addEthereumChain",
             params: [
               {
-                chainName: "Rinkeby Test Network",
-                chainId: "0x4",
+                chainName: "Neon Devnet",
+                chainId: "0xe9ac0ce",
                 nativeCurrency: {
-                  name: "ETH",
+                  name: "NEON",
                   decimals: 18,
-                  symbol: "ETH",
+                  symbol: "NEON",
                 },
                 rpcUrls: [
-                  "https://speedy-nodes-nyc.moralis.io/4ed632e1419adca7fea61365/eth/rinkeby",
+                  "https://devnet.neonevm.org",
                 ],
               },
             ],
