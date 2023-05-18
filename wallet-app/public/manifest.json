@@ -1,6 +1,7 @@
 {
   "short_name": "Neon-React App",
-  "name": "Sample React app on Neon Devnet",
+  "name": "Test App",
+  "description": "Sample React app on Neon Devnet",
   "icons": [
     {
       "src": "favicon.ico",

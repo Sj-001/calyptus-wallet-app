@@ -3,11 +3,24 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import SafeProvider from '@safe-global/safe-apps-react-sdk'
+import { theme, Loader, Title } from '@safe-global/safe-react-components'
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <SafeProvider
+        loader={
+          <>
+            {/* <Title size="md">Waiting for Safe...</Title> */}
+            {/* <Loader size="md" /> */}
+          </>
+        }
+      >
+        <App />
+      </SafeProvider>
+    
   </React.StrictMode>
 );
 

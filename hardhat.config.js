@@ -19,12 +19,9 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.8.11",
-  // defaultNetwork: "localhost",
+  defaultNetwork: "neondevnet",
   networks: {
-    rinkeby: {
-      url: process.env.RPC_URL,
-      accounts:[process.env.NEON_ACCOUNTS],
-    },
+    
     neondevnet: {
       chainId: 245022926,
       url: process.env.RPC_URL,
@@ -32,7 +29,19 @@ module.exports = {
     },   
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+     apiKey: {
+    neonevm: "test"
+  },
+  customChains: [
+    {
+      network: "neonevm",
+      chainId: 245022926,
+      urls: {
+        apiURL: "https://devnet-api.neonscan.org/hardhat/verify",
+        browserURL: "https://devnet.neonscan.org"
+      }
+    }
+  ]
   },
   paths: {
     sources: "./contracts",

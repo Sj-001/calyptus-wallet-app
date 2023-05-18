@@ -1,9 +1,11 @@
 import logo from "./logo.svg";
 import "./App.css";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 import SharedWallet from "./artifacts/contracts/SharedWallet.sol/SharedWallet.json";
 import WalletCreator from "./artifacts/contracts/WalletCreator.sol/WalletCreator.json";
+import { Button, Title } from '@safe-global/safe-react-components'
+import { useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk'
 
 function App() {
   const [walletCreator, setWalletCreator] = useState(null);
@@ -19,7 +21,13 @@ function App() {
   const [amount, setAmount] = useState(0);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { sdk, safe } = useSafeAppsSDK()
+  let iface = new ethers.utils.Interface(WalletCreator.abi);
+
   useEffect(() => {
+    if (safe) {
+      setAdddress(safe.safeAddress)
+    }
     async function initialize() {
       console.log(
         "current wallet: ",
@@ -33,7 +41,7 @@ function App() {
       // Prompt user for account connections
 
       var contract = new ethers.Contract(
-        "0x2e9e6E40f1a49008ABacdE5C3D311D1e169747E2",
+        "0xF5347bAb35133cf1e5c11F6a058DfD96B4caDDbE",
         WalletCreator.abi,
         provider
       );
@@ -51,6 +59,7 @@ function App() {
       }
     }
     initialize();
+    console.log("safe: ", safe.safeAddress)
   }, [currWallet, account, address]);
 
   async function setLimit() {
@@ -59,50 +68,50 @@ function App() {
     setSpendLimit(ethers.utils.formatEther(limit.toString()));
   }
 
-  const handleWalletConnect = async (event) => {
-    event.preventDefault();
-    await connectWallet();
-  };
+  // const handleWalletConnect = async (event) => {
+  //   event.preventDefault();
+  //   await connectWallet();
+  // };
 
-  const connectWallet = async () => {
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    const account = await signer.getAddress();
-    setAccount(signer);
-    setAdddress(account);
-    console.log("Account connected", account);
-    const chainId = 245022926; //Neon Devnet
+  // const connectWallet = async () => {
+  //   await provider.send("eth_requestAccounts", []);
+  //   const signer = provider.getSigner();
+  //   const account = await signer.getAddress();
+  //   setAccount(signer);
+  //   setAdddress(account);
+  //   console.log("Account connected", account);
+  //   const chainId = 245022926; //Neon Devnet
 
-    if (window.ethereum.networkVersion !== chainId) {
-      try {
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0xe9ac0ce" }],
-        });
-      } catch (err) {
-        // This error code indicates that the chain has not been added to MetaMask
-        if (err.code === 4902) {
-          await window.ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainName: "Neon Devnet",
-                chainId: "0xe9ac0ce",
-                nativeCurrency: {
-                  name: "NEON",
-                  decimals: 18,
-                  symbol: "NEON",
-                },
-                rpcUrls: [
-                  "https://devnet.neonevm.org",
-                ],
-              },
-            ],
-          });
-        }
-      }
-    }
-  };
+  //   if (window.ethereum.networkVersion !== chainId) {
+  //     try {
+  //       await window.ethereum.request({
+  //         method: "wallet_switchEthereumChain",
+  //         params: [{ chainId: "0xe9ac0ce" }],
+  //       });
+  //     } catch (err) {
+  //       // This error code indicates that the chain has not been added to MetaMask
+  //       if (err.code === 4902) {
+  //         await window.ethereum.request({
+  //           method: "wallet_addEthereumChain",
+  //           params: [
+  //             {
+  //               chainName: "Neon Devnet",
+  //               chainId: "0xe9ac0ce",
+  //               nativeCurrency: {
+  //                 name: "NEON",
+  //                 decimals: 18,
+  //                 symbol: "NEON",
+  //               },
+  //               rpcUrls: [
+  //                 "https://devnet.neonevm.org",
+  //               ],
+  //             },
+  //           ],
+  //         });
+  //       }
+  //     }
+  //   }
+  // };
 
   async function setWalletBalance() {
     var newBalance = await provider.getBalance(currWallet.address);
@@ -113,8 +122,15 @@ function App() {
   async function createWallet(event) {
     event.preventDefault();
     setLoading(true);
-    var tx = await walletCreator.connect(account).createWallet();
-    await tx.wait();
+    // var tx = await walletCreator.connect(account).createWallet();
+    // await tx.wait();
+    var data = iface.encodeFunctionData("createWallet")
+    var tx = {
+      to: walletCreator.address,
+      value: '0',
+      data: data
+    }
+    await submitTx(tx);
     try {
       var wallets = await walletCreator.returnUserWallets(address);
       console.log(wallets);
@@ -263,6 +279,20 @@ function App() {
     }
     setLoading(false);
   }
+
+  const submitTx = useCallback(async (tx) => {
+    try {
+      const { safeTxHash } = await sdk.txs.send({
+        txs: [tx],
+      })
+      console.log({ safeTxHash })
+      const safeTx = await sdk.txs.getBySafeTxHash(safeTxHash)
+      console.log({ safeTx })
+    } catch (e) {
+      console.error(e)
+    }
+  }, [safe, sdk])
+
   return (
     <div className="App">
       {loading ? (
@@ -271,9 +301,9 @@ function App() {
         </div>
       ) : (
         <div>
-          {account ? (
+          {safe ? (
             <div>
-              <p onClick={handleWalletConnect}>{address}</p>
+              <p>Safe: {safe.safeAddress}</p>
               <br />
               <br />
               <br />
@@ -371,8 +401,8 @@ function App() {
               )}
             </div>
           ) : (
-            <button className="metamask" onClick={handleWalletConnect}>
-              Connect Metamask
+            <button className="metamask">
+              Waiting for safe...
             </button>
           )}
         </div>
