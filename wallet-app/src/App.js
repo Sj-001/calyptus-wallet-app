@@ -23,7 +23,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const { sdk, safe } = useSafeAppsSDK()
   let iface = new ethers.utils.Interface(WalletCreator.abi);
-
+  let swface = new ethers.utils.Interface(SharedWallet.abi)
   useEffect(() => {
     if (safe) {
       setAdddress(safe.safeAddress)
@@ -175,10 +175,18 @@ function App() {
     setLoading(true);
     try {
       var options = { value: ethers.utils.parseEther(amount.toString()) };
-      var tx = await currWallet
-        .connect(account)
-        .addOwner(beneficiary, options.value);
-      await tx.wait();
+
+      var data = swface.encodeFunctionData("addOwner", [beneficiary, options.value])
+    var tx = {
+      to: currWallet.address,
+      value: '0',
+      data: data
+    }
+    await submitTx(tx);
+      // var tx = await currWallet
+      //   .connect(account)
+      //   .addOwner(beneficiary, options.value);
+      // await tx.wait();
       alert("AddedBeneficiary");
     } catch (error) {
       alert(error.message);
@@ -191,8 +199,15 @@ function App() {
     event.preventDefault();
     setLoading(true);
     try {
-      var tx = await currWallet.connect(account).removeOwner(beneficiary);
-      await tx.wait();
+      // var tx = await currWallet.connect(account).removeOwner(beneficiary);
+      // await tx.wait();
+      var data = swface.encodeFunctionData("removeOwner", [beneficiary])
+    var tx = {
+      to: currWallet.address,
+      value: '0',
+      data: data
+    }
+    await submitTx(tx);
       alert("RemovedBeneficiary");
     } catch (error) {
       alert(error.message);
@@ -204,7 +219,7 @@ function App() {
     event.preventDefault();
     try {
       var amount = await currWallet.approvedOwner(beneficiary);
-      console.log(typeof ethers.utils.formatEther(amount.toString()));
+      console.log(ethers.utils.formatEther(amount.toString()));
 
       alert("Spend Limit:" + ethers.utils.formatEther(amount.toString()));
     } catch (error) {
@@ -217,10 +232,17 @@ function App() {
     setLoading(true);
     try {
       var options = { value: ethers.utils.parseEther(amount) };
-      var tx = await currWallet
-        .connect(account)
-        .increaseUserSpendLimit(beneficiary, options.value);
-      await tx.wait();
+      // var tx = await currWallet
+      //   .connect(account)
+      //   .increaseUserSpendLimit(beneficiary, options.value);
+      // await tx.wait();
+      var data = swface.encodeFunctionData("increaseUserSpendLimit", [beneficiary, options.value])
+    var tx = {
+      to: currWallet.address,
+      value: '0',
+      data: data
+    }
+    await submitTx(tx);
       var limit = await currWallet.approvedOwner(beneficiary);
       alert("Increased limit to:" + limit.toString());
     } catch (error) {
@@ -234,8 +256,15 @@ function App() {
     setLoading(true);
     try {
       var options = { value: ethers.utils.parseEther(amount) };
-      var tx = await currWallet.connect(account).deposit(options);
-      await tx.wait();
+      // var tx = await currWallet.connect(account).deposit(options);
+      // await tx.wait();
+      var data = swface.encodeFunctionData("deposit")
+    var tx = {
+      to: currWallet.address,
+      value: options.value,
+      data: data
+    }
+    await submitTx(tx);
       await setWalletBalance();
       alert("Deposited!");
     } catch (error) {
@@ -250,8 +279,15 @@ function App() {
     setLoading(true);
     try {
       var options = { value: ethers.utils.parseEther(amount) };
-      var tx = await currWallet.connect(account).withdraw(options.value);
-      await tx.wait();
+      // var tx = await currWallet.connect(account).withdraw(options.value);
+      // await tx.wait();
+      var data = swface.encodeFunctionData("withdraw", [options.value])
+    var tx = {
+      to: currWallet.address,
+      value: '0',
+      data: data
+    }
+    await submitTx(tx);
       await setWalletBalance();
       await setLimit();
       alert("Withdraw completed! ");
@@ -266,10 +302,17 @@ function App() {
     setLoading(true);
     try {
       var options = { value: ethers.utils.parseEther(amount) };
-      var tx = await currWallet
-        .connect(account)
-        .transfer(recipient, options.value);
-      await tx.wait();
+      // var tx = await currWallet
+      //   .connect(account)
+      //   .transfer(recipient, options.value);
+      // await tx.wait();
+      var data = swface.encodeFunctionData("transfer", [recipient, options.value])
+    var tx = {
+      to: currWallet.address,
+      value: '0',
+      data: data
+    }
+    await submitTx(tx);
       await setWalletBalance();
       await setLimit();
       alert(`${amount} Transferred to ${recipient}!`);
